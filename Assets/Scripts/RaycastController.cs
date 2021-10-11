@@ -9,14 +9,14 @@ namespace FlipSide.Gameplay.Controller
 		/// Layers that the RaycastController may interact with.
 		/// </summary>
 		public LayerMask collisionMask;
-		
+
 		public const float skinWidth = 0.015f;
 		public int horizontalRayCount = 4;
 		public int verticalRayCount = 4;
-		
+
 		[HideInInspector] public float horizontalRaySpacing;
 		[HideInInspector] public float verticalRaySpacing;
-		
+
 		[HideInInspector] public BoxCollider2D box;
 		[HideInInspector] public RaycastOrigins raycastOrigins;
 
@@ -24,17 +24,6 @@ namespace FlipSide.Gameplay.Controller
 		{
 			box = GetComponent<BoxCollider2D>();
 			CalculateRaySpacing();
-		}
-		
-		public void UpdateRaycastOrigins()
-		{
-			Bounds bounds = box.bounds;
-			bounds.Expand(skinWidth * -2);
-
-			raycastOrigins.bottomLeft = new Vector2(bounds.min.x, bounds.min.y);
-			raycastOrigins.bottomRight = new Vector2(bounds.max.x, bounds.min.y);
-			raycastOrigins.topLeft = new Vector2(bounds.min.x, bounds.max.y);
-			raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
 		}
 
 		/// <summary>
@@ -59,6 +48,17 @@ namespace FlipSide.Gameplay.Controller
 		{
 			public Vector2 topLeft, topRight;
 			public Vector2 bottomLeft, bottomRight;
+		}
+
+		public void UpdateRaycastOrigins()
+		{
+			Bounds bounds = box.bounds;
+			bounds.Expand(skinWidth * -2);
+
+			raycastOrigins.bottomLeft = new Vector2(bounds.min.x, bounds.min.y);
+			raycastOrigins.bottomRight = new Vector2(bounds.max.x, bounds.min.y);
+			raycastOrigins.topLeft = new Vector2(bounds.min.x, bounds.max.y);
+			raycastOrigins.topRight = new Vector2(bounds.max.x, bounds.max.y);
 		}
 	}
 }

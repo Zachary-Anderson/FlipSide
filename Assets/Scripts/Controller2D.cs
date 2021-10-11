@@ -11,10 +11,16 @@ namespace FlipSide.Gameplay.Controller
 		public CollisionInfo collisions;
 		Vector2 playerInput;
 
+		bool flipHorizontal;
+		bool flipVertical;
+
 		public override void Start()
 		{
 			base.Start();
 			collisions.faceDir = 1;
+
+			flipHorizontal = transform.eulerAngles.y == 180 ^ transform.eulerAngles.z == 180;
+			flipVertical = transform.eulerAngles.x == 180 ^ transform.eulerAngles.z == 180;
 		}
 
 		public void Move(Vector3 velocity, bool standingOnPlatform)
@@ -68,11 +74,11 @@ namespace FlipSide.Gameplay.Controller
 
 			for (int i = 0; i < horizontalRayCount; i++)
 			{
-				Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
-				rayOrigin += Vector2.up * (horizontalRaySpacing * i);
-				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+				Vector2 rayOrigin = (directionX == -1 ^ flipHorizontal) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight;
+				rayOrigin += (Vector2)transform.up * (horizontalRaySpacing * i) * (!flipVertical ? 1 : -1);
+				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, transform.right * directionX, rayLength, collisionMask);
 
-				Debug.DrawRay(rayOrigin, Vector2.right * directionX * rayLength, Color.red);
+				Debug.DrawRay(rayOrigin, transform.right * directionX * rayLength, Color.red);
 
 				if (hit)
 				{
@@ -81,9 +87,9 @@ namespace FlipSide.Gameplay.Controller
 						continue;
 					}
 
-					float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+					float slopeAngle = Vector2.Angle(hit.normal, transform.up);
 
-					if (i == 0 && slopeAngle <= slopeAngleLimit)
+					if (i == (!flipVertical ? 0 : horizontalRayCount - 1) && slopeAngle <= slopeAngleLimit)
 					{
 						if (collisions.descendingSlope)
 						{
@@ -125,11 +131,11 @@ namespace FlipSide.Gameplay.Controller
 
 			for (int i = 0; i < verticalRayCount; i++)
 			{
-				Vector2 rayOrigin = (directionY == -1) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
-				rayOrigin += Vector2.right * (verticalRaySpacing * i + velocity.x);
-				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
+				Vector2 rayOrigin = (directionY == -1 ^ flipVertical) ? raycastOrigins.bottomLeft : raycastOrigins.topLeft;
+				rayOrigin += (Vector2)transform.right * (verticalRaySpacing * i + velocity.x) * (!flipHorizontal ? 1 : -1);
+				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, transform.up * directionY, rayLength, collisionMask);
 
-				Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.red);
+				Debug.DrawRay(rayOrigin, transform.up * directionY * rayLength, Color.red);
 
 				if (hit)
 				{
@@ -168,12 +174,12 @@ namespace FlipSide.Gameplay.Controller
 			{
 				float directionX = Mathf.Sign(velocity.x);
 				rayLength = Mathf.Abs(velocity.x) + skinWidth;
-				Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * velocity.y;
-				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
+				Vector2 rayOrigin = ((directionX == -1 ^ flipHorizontal) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + (Vector2)transform.up * velocity.y * (!flipVertical ? 1 : -1);
+				RaycastHit2D hit = Physics2D.Raycast(rayOrigin, transform.right * directionX, rayLength, collisionMask);
 
 				if (hit)
 				{
-					float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+					float slopeAngle = Vector2.Angle(hit.normal, transform.up);
 					if (slopeAngle != collisions.slopeAngle)
 					{
 						velocity.x = (hit.distance - skinWidth) * directionX;
@@ -201,12 +207,13 @@ namespace FlipSide.Gameplay.Controller
 		void DescendSlope(ref Vector3 velocity)
 		{
 			float directionX = Mathf.Sign(velocity.x);
-			Vector2 rayOrigin = (directionX == -1) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
-			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -Vector2.up, Mathf.Infinity, collisionMask);
+			Vector2 rayOrigin = !flipVertical ? ((directionX == -1 ^ flipHorizontal) ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft)
+											  : ((directionX == -1 ^ flipHorizontal) ? raycastOrigins.topRight : raycastOrigins.bottomRight);
+			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, -transform.up, Mathf.Infinity, collisionMask);
 
 			if (hit)
 			{
-				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+				int slopeAngle = (int)Vector2.Angle(hit.normal, transform.up);
 				if (slopeAngle != 0 && slopeAngle <= slopeAngleLimit)
 				{
 					if (Mathf.Sign(hit.normal.x) == directionX)

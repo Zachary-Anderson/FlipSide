@@ -63,6 +63,8 @@ namespace FlipSide.Gameplay
 		public float wallStickTime = 0.25f;
 		float timeToWallUnstick;*/
 
+		[SerializeField] Transform playerSprite;
+		
 		#endregion
 
 		private void Start()
@@ -157,6 +159,15 @@ namespace FlipSide.Gameplay
 			if (controller.collisions.above || controller.collisions.below)
 			{                       // If the player is grounded, or hit their head...
 				velocity.y = 0;     // Set their vertical velocity to 0.
+			}
+
+			if (velocity.x > 0)
+			{
+				playerSprite.localEulerAngles = new Vector3(0, 0, 0);
+			}
+			else if (velocity.x < 0)
+			{
+				playerSprite.localEulerAngles = new Vector3(0, 180, 0);
 			}
 		}
 	}
